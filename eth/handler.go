@@ -143,6 +143,7 @@ func newHandler(config *handlerConfig) (*handler, error) {
 		requiredBlocks: config.RequiredBlocks,
 		quitSync:       make(chan struct{}),
 	}
+	//判断同步状态
 	if config.Sync == downloader.FullSync {
 		// The database seems empty as the current block is the genesis. Yet the snap
 		// block is ahead, so snap sync was enabled for this node at a certain point.
@@ -166,7 +167,7 @@ func newHandler(config *handlerConfig) (*handler, error) {
 			h.snapSync = uint32(1)
 		}
 	}
-	// If we have trusted checkpoints, enforce them on the chain
+	// If we have trusted checkpoints, enforce them on the chain 如果我们有可信的检查点，请在链上强制执行
 	if config.Checkpoint != nil {
 		h.checkpointNumber = (config.Checkpoint.SectionIndex+1)*params.CHTFrequency - 1
 		h.checkpointHash = config.Checkpoint.SectionHead
@@ -191,7 +192,7 @@ func newHandler(config *handlerConfig) (*handler, error) {
 			}
 		}
 	}
-	// Construct the downloader (long sync)
+	// Construct the downloader (long sync) 构建下载器（长同步）
 	h.downloader = downloader.New(h.checkpointNumber, config.Database, h.eventMux, h.chain, nil, h.removePeer, success)
 	if ttd := h.chain.Config().TerminalTotalDifficulty; ttd != nil {
 		if h.chain.Config().TerminalTotalDifficultyPassed {
@@ -207,7 +208,7 @@ func newHandler(config *handlerConfig) (*handler, error) {
 	} else if h.chain.Config().TerminalTotalDifficultyPassed {
 		log.Error("Chain configured post-merge, but without TTD. Are you debugging sync?")
 	}
-	// Construct the fetcher (short sync)
+	// Construct the fetcher (short sync) 构造区块同步器（短同步）
 	validator := func(header *types.Header) error {
 		// All the block fetcher activities should be disabled
 		// after the transition. Print the warning log.
@@ -292,6 +293,7 @@ func newHandler(config *handlerConfig) (*handler, error) {
 		}
 		return n, err
 	}
+	//创建区块同步器
 	h.blockFetcher = fetcher.NewBlockFetcher(false, nil, h.chain.GetBlockByHash, validator, h.BroadcastBlock, heighter, nil, inserter, h.removePeer)
 
 	fetchTx := func(peer string, hashes []common.Hash) error {
@@ -301,7 +303,9 @@ func newHandler(config *handlerConfig) (*handler, error) {
 		}
 		return p.RequestTxs(hashes)
 	}
+	//创建交易同步器
 	h.txFetcher = fetcher.NewTxFetcher(h.txpool.Has, h.txpool.AddRemotes, fetchTx)
+	//链同步器
 	h.chainSync = newChainSyncer(h)
 	return h, nil
 }
@@ -578,7 +582,7 @@ func (h *handler) Stop() {
 }
 
 // BroadcastBlock will either propagate a block to a subset of its peers, or
-// will only announce its availability (depending what's requested).
+// will only announce its availability (depending what's requested). 要么将一个块传播到所有已连接的节点，要么只宣布这个区块可用性（取决于请求的内容）。
 func (h *handler) BroadcastBlock(block *types.Block, propagate bool) {
 	// Disable the block propagation if the chain has already entered the PoS
 	// stage. The block propagation is delegated to the consensus layer.
@@ -621,7 +625,7 @@ func (h *handler) BroadcastBlock(block *types.Block, propagate bool) {
 	}
 }
 
-// BroadcastTransactions will propagate a batch of transactions
+// BroadcastTransactions will propagate a batch of transactions 将传播一批事务给所有连接的节点
 // - To a square root of all peers
 // - And, separately, as announcements to all peers which are not known to
 // already have the given transaction.
@@ -664,7 +668,7 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 		"tx packs", directPeers, "broadcast txs", directCount)
 }
 
-// minedBroadcastLoop sends mined blocks to connected peers.
+// minedBroadcastLoop sends mined blocks to connected peers. 将挖掘的块发送给连接的节点。
 func (h *handler) minedBroadcastLoop() {
 	defer h.wg.Done()
 
@@ -676,7 +680,7 @@ func (h *handler) minedBroadcastLoop() {
 	}
 }
 
-// txBroadcastLoop announces new transactions to connected peers.
+// txBroadcastLoop announces new transactions to connected peers. 向连接的节点广播交易
 func (h *handler) txBroadcastLoop() {
 	defer h.wg.Done()
 	for {

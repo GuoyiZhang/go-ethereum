@@ -79,7 +79,7 @@ type chainSyncOp struct {
 	head common.Hash
 }
 
-// newChainSyncer creates a chainSyncer.
+// newChainSyncer creates a chainSyncer. 创建了一个链同步器
 func newChainSyncer(handler *handler) *chainSyncer {
 	return &chainSyncer{
 		handler:     handler,

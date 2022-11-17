@@ -1,4 +1,5 @@
+miner.start()
 eth.accounts
 miner.start()
 eth.getBalance(eth.accounts[0])
-web3.fromWei(eth.getBalance(eth.accounts[0]))
+miner.start()

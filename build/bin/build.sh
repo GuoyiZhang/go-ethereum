@@ -1,0 +1,2 @@
+make geth
+make all

@@ -361,7 +361,7 @@ func geth(ctx *cli.Context) error {
 func startNode(ctx *cli.Context, stack *node.Node, backend ethapi.Backend, isConsole bool) {
 	debug.Memsize.Add("node", stack)
 
-	// Start up the node itself
+	// Start up the node itself 启动节点
 	utils.StartNode(ctx, stack, isConsole)
 
 	// Unlock any account specifically requested

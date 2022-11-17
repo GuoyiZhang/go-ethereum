@@ -520,7 +520,7 @@ func (s *Ethereum) Start() error {
 	// Regularly update shutdown marker
 	s.shutdownTracker.Start()
 
-	// Figure out a max peers count based on the server limits
+	// Figure out a max peers count based on the server limits 根据服务器限制计算最大对等点数
 	maxPeers := s.p2pServer.MaxPeers
 	if s.config.LightServ > 0 {
 		if s.config.LightPeers >= s.p2pServer.MaxPeers {
@@ -528,7 +528,7 @@ func (s *Ethereum) Start() error {
 		}
 		maxPeers -= s.config.LightPeers
 	}
-	// Start the networking layer and the light server if requested
+	// Start the networking layer and the light server if requested 如果需要，启动网络层和灯光服务器
 	s.handler.Start(maxPeers)
 	return nil
 }

@@ -1,8 +1,8 @@
-=============== Nov 11, 2022 (CST) ===============
-16:09:54.382886 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
-16:09:54.460993 db@open opening
-16:09:54.462266 version@stat F·[] S·0B[] Sc·[]
-16:09:54.501494 db@janitor F·2 G·0
-16:09:54.501579 db@open done T·40.508958ms
-16:09:54.782688 db@close closing
-16:09:54.782989 db@close done T·300.625µs
+=============== Nov 15, 2022 (CST) ===============
+10:38:05.543515 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+10:38:05.626549 db@open opening
+10:38:05.627994 version@stat F·[] S·0B[] Sc·[]
+10:38:05.648408 db@janitor F·2 G·0
+10:38:05.648511 db@open done T·21.882209ms
+10:38:05.883878 db@close closing
+10:38:05.884001 db@close done T·121.958µs
