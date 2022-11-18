@@ -93,7 +93,7 @@ type TxPool interface {
 	Get(hash common.Hash) *types.Transaction
 }
 
-// MakeProtocols constructs the P2P protocol definitions for `eth`.
+// MakeProtocols constructs the P2P protocol definitions for `eth`. 构造“eth”的P2P协议定义。
 func MakeProtocols(backend Backend, network uint64, dnsdisc enode.Iterator) []p2p.Protocol {
 	protocols := make([]p2p.Protocol, len(ProtocolVersions))
 	for i, version := range ProtocolVersions {
@@ -213,6 +213,7 @@ var eth68 = map[uint64]msgHandler{
 
 // handleMessage is invoked whenever an inbound message is received from a remote
 // peer. The remote connection is torn down upon returning any error.
+// 每当从远程节点接收到入站消息时，就会调用handleMessage。当返回任何错误时，远程连接将被断开。
 func handleMessage(backend Backend, peer *Peer) error {
 	// Read the next message from the remote peer, and ensure it's fully consumed
 	msg, err := peer.rw.ReadMsg()

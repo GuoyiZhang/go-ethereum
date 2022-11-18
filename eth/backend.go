@@ -260,7 +260,7 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 	// Start the RPC service
 	eth.netRPCService = ethapi.NewNetAPI(eth.p2pServer, config.NetworkId)
 
-	// Register the backend on the node
+	// Register the backend on the node 在节点上注册后端
 	stack.RegisterAPIs(eth.APIs())
 	stack.RegisterProtocols(eth.Protocols())
 	stack.RegisterLifecycle(eth)
@@ -499,8 +499,7 @@ func (s *Ethereum) SyncMode() downloader.SyncMode {
 	return mode
 }
 
-// Protocols returns all the currently configured
-// network protocols to start.
+// Protocols returns all the currently configured network protocols to start. 返回要启动的所有当前配置的网络协议。
 func (s *Ethereum) Protocols() []p2p.Protocol {
 	protos := eth.MakeProtocols((*ethHandler)(s.handler), s.networkID, s.ethDialCandidates)
 	if s.config.SnapshotCache > 0 {

@@ -23,7 +23,7 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/enr"
 )
 
-// Protocol represents a P2P subprotocol implementation.
+// Protocol represents a P2P subprotocol implementation. P2P子协议实现。
 type Protocol struct {
 	// Name should contain the official protocol name,
 	// often a three-letter word.

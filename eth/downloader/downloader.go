@@ -208,7 +208,7 @@ type BlockChain interface {
 	Snapshots() *snapshot.Tree
 }
 
-// New creates a new downloader to fetch hashes and blocks from remote peers.
+// New creates a new downloader to fetch hashes and blocks from remote peers. 创建一个新的下载器以从远程对等端获取哈希和块。
 func New(checkpoint uint64, stateDb ethdb.Database, mux *event.TypeMux, chain BlockChain, lightchain LightChain, dropPeer peerDropFn, success func()) *Downloader {
 	if lightchain == nil {
 		lightchain = chain

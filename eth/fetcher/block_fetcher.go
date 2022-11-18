@@ -239,7 +239,7 @@ func (f *BlockFetcher) Stop() {
 }
 
 // Notify announces the fetcher of the potential availability of a new block in
-// the network.
+// the network. Notify函数通知提取网络中新块的潜在可用区块。
 func (f *BlockFetcher) Notify(peer string, hash common.Hash, number uint64, time time.Time,
 	headerFetcher headerRequesterFn, bodyFetcher bodyRequesterFn) error {
 	block := &blockAnnounce{
@@ -273,7 +273,7 @@ func (f *BlockFetcher) Enqueue(peer string, block *types.Block) error {
 }
 
 // FilterHeaders extracts all the headers that were explicitly requested by the fetcher,
-// returning those that should be handled differently.
+// returning those that should be handled differently. 过滤待处理的区块的所有标头，返回那些应该以不同方式处理的标头。
 func (f *BlockFetcher) FilterHeaders(peer string, headers []*types.Header, time time.Time) []*types.Header {
 	log.Trace("Filtering headers", "peer", peer, "headers", len(headers))
 
@@ -496,7 +496,7 @@ func (f *BlockFetcher) loop() {
 					}
 				}(peer)
 			}
-			// Schedule the next fetch if blocks are still pending
+			// Schedule the next fetch if blocks are still pending 如果块仍处于挂起状态，则计划下一次提取
 			f.rescheduleFetch(fetchTimer)
 
 		case <-completeTimer.C:

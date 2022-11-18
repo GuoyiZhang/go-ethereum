@@ -321,7 +321,7 @@ func handleNewBlockhashes(backend Backend, msg Decoder, peer *Peer) error {
 	for _, block := range *ann {
 		peer.markBlock(block.Hash)
 	}
-	// Deliver them all to the backend for queuing
+	// Deliver them all to the backend for queuing 将它们全部发送到后端进行排队
 	return backend.Handle(peer, ann)
 }
 

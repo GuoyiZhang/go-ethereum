@@ -305,13 +305,13 @@ func newHandler(config *handlerConfig) (*handler, error) {
 	}
 	//创建交易同步器
 	h.txFetcher = fetcher.NewTxFetcher(h.txpool.Has, h.txpool.AddRemotes, fetchTx)
-	//链同步器
+	//创建一个链同步器
 	h.chainSync = newChainSyncer(h)
 	return h, nil
 }
 
 // runEthPeer registers an eth peer into the joint eth/snap peerset, adds it to
-// various subsystems and starts handling messages.
+// various subsystems and starts handling messages. 将eth相邻节点注册到联合eth/snap对等体集中，将其添加到各个子系统并开始处理消息。
 func (h *handler) runEthPeer(peer *eth.Peer, handler eth.Handler) error {
 	// If the peer has a `snap` extension, wait for it to connect so we can have
 	// a uniform initialization/teardown mechanism
@@ -359,7 +359,7 @@ func (h *handler) runEthPeer(peer *eth.Peer, handler eth.Handler) error {
 	}
 	peer.Log().Debug("Ethereum peer connected", "name", peer.Name())
 
-	// Register the peer locally
+	// Register the peer locally 注册节点到本地
 	if err := h.peers.registerPeer(peer, snap); err != nil {
 		peer.Log().Error("Ethereum peer registration failed", "err", err)
 		return err
@@ -557,7 +557,7 @@ func (h *handler) Start(maxPeers int) {
 	h.minedBlockSub = h.eventMux.Subscribe(core.NewMinedBlockEvent{})
 	go h.minedBroadcastLoop()
 
-	// start sync handlers
+	// start sync handlers 启动同步交易和区块
 	h.wg.Add(1)
 	go h.chainSync.loop()
 }
@@ -582,7 +582,7 @@ func (h *handler) Stop() {
 }
 
 // BroadcastBlock will either propagate a block to a subset of its peers, or
-// will only announce its availability (depending what's requested). 要么将一个块传播到所有已连接的节点，要么只宣布这个区块可用性（取决于请求的内容）。
+// will only announce its availability (depending what's requested). 要么将一个块传播到所有已连接的节点，要么宣布这个区块可用性=广播已挖区块（取决于请求的内容）。
 func (h *handler) BroadcastBlock(block *types.Block, propagate bool) {
 	// Disable the block propagation if the chain has already entered the PoS
 	// stage. The block propagation is delegated to the consensus layer.

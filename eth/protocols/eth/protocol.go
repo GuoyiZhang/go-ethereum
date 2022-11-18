@@ -28,7 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-// Constants to match up protocol versions and messages
+// Constants to match up protocol versions and messages 用于匹配协议版本和消息的常量
 const (
 	ETH66 = 66
 	ETH67 = 67
@@ -103,7 +103,7 @@ type NewBlockHashesPacket []struct {
 
 // Unpack retrieves the block hashes and numbers from the announcement packet
 // and returns them in a split flat format that's more consistent with the
-// internal data structures.
+// internal data structures. 从公告包中检索块散列和数字，并以与内部数据结构更一致的拆分平面格式返回它们。
 func (p *NewBlockHashesPacket) Unpack() ([]common.Hash, []uint64) {
 	var (
 		hashes  = make([]common.Hash, len(*p))

@@ -99,11 +99,13 @@ func (cs *chainSyncer) handlePeerEvent(peer *eth.Peer) bool {
 	}
 }
 
-// loop runs in its own goroutine and launches the sync when necessary.
+// loop runs in its own goroutine and launches the sync when necessary.  ，在自己的goroutine中运行，并在必要时启动同步。
 func (cs *chainSyncer) loop() {
 	defer cs.handler.wg.Done()
 
+	//区块同步
 	cs.handler.blockFetcher.Start()
+	//交易同步
 	cs.handler.txFetcher.Start()
 	defer cs.handler.blockFetcher.Stop()
 	defer cs.handler.txFetcher.Stop()
