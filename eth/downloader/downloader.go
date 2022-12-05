@@ -329,7 +329,7 @@ func (d *Downloader) UnregisterPeer(id string) error {
 }
 
 // LegacySync tries to sync up our local block chain with a remote peer, both
-// adding various sanity checks as well as wrapping it with various log entries.
+// adding various sanity checks as well as wrapping it with various log entries. 尝试将本地块链与远程节点同步，同时添加各种健全性检查，并使用各种日志条目对其进行包装。
 func (d *Downloader) LegacySync(id string, head common.Hash, td, ttd *big.Int, mode SyncMode) error {
 	err := d.synchronise(id, head, td, ttd, mode, false, nil)
 
@@ -359,7 +359,7 @@ func (d *Downloader) LegacySync(id string, head common.Hash, td, ttd *big.Int, m
 
 // synchronise will select the peer and use it for synchronising. If an empty string is given
 // it will use the best peer possible and synchronize if its TD is higher than our own. If any of the
-// checks fail an error will be returned. This method is synchronous
+// checks fail an error will be returned. This method is synchronous 将选择一个节点并将其用于同步。如果给定一个空字符串，它将使用可能的最佳的节点，如果其TD高于我们自己的TD，则进行同步。如果任何检查失败，将返回错误。此方法是同步的
 func (d *Downloader) synchronise(id string, hash common.Hash, td, ttd *big.Int, mode SyncMode, beaconMode bool, beaconPing chan struct{}) error {
 	// The beacon header syncer is async. It will start this synchronization and
 	// will continue doing other tasks. However, if synchronization needs to be
@@ -444,7 +444,7 @@ func (d *Downloader) getMode() SyncMode {
 }
 
 // syncWithPeer starts a block synchronization based on the hash chain from the
-// specified peer and head hash.
+// specified peer and head hash. 基于指定的对等哈希和头哈希的哈希链启动块同步。
 func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td, ttd *big.Int, beaconMode bool) (err error) {
 	d.mux.Post(StartEvent{})
 	defer func() {
@@ -517,13 +517,13 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td, ttd *
 
 	var origin uint64
 	if !beaconMode {
-		// In legacy mode, reach out to the network and find the ancestor
+		// In legacy mode, reach out to the network and find the ancestor 在传统模式下，联系网络并找到祖先
 		origin, err = d.findAncestor(p, latest)
 		if err != nil {
 			return err
 		}
 	} else {
-		// In beacon mode, use the skeleton chain for the ancestor lookup
+		// In beacon mode, use the skeleton chain for the ancestor lookup 在信标模式下，使用骨架链查找祖先
 		origin, err = d.findBeaconAncestor()
 		if err != nil {
 			return err
@@ -600,16 +600,16 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td, ttd *
 	}
 	var headerFetcher func() error
 	if !beaconMode {
-		// In legacy mode, headers are retrieved from the network
+		// In legacy mode, headers are retrieved from the network 在传统模式下，从网络中检索标头
 		headerFetcher = func() error { return d.fetchHeaders(p, origin+1, latest.Number.Uint64()) }
 	} else {
-		// In beacon mode, headers are served by the skeleton syncer
+		// In beacon mode, headers are served by the skeleton syncer 在信标模式下，标头由骨架同步器提供服务
 		headerFetcher = func() error { return d.fetchBeaconHeaders(origin + 1) }
 	}
 	fetchers := []func() error{
-		headerFetcher, // Headers are always retrieved
-		func() error { return d.fetchBodies(origin+1, beaconMode) },   // Bodies are retrieved during normal and snap sync
-		func() error { return d.fetchReceipts(origin+1, beaconMode) }, // Receipts are retrieved during snap sync
+		headerFetcher, // Headers are always retrieved 始终检索标头
+		func() error { return d.fetchBodies(origin+1, beaconMode) },   // Bodies are retrieved during normal and snap sync 在正常和快照同步期间检索实体
+		func() error { return d.fetchReceipts(origin+1, beaconMode) }, // Receipts are retrieved during snap sync 在快照同步期间检索收据
 		func() error { return d.processHeaders(origin+1, td, ttd, beaconMode) },
 	}
 	if mode == SnapSync {
@@ -625,7 +625,7 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td, ttd *
 }
 
 // spawnSync runs d.process and all given fetcher functions to completion in
-// separate goroutines, returning the first error that appears.
+// separate goroutines, returning the first error that appears. 在单独的goroutine中运行d.process和所有给定的fetcher函数以完成，返回出现的第一个错误。
 func (d *Downloader) spawnSync(fetchers []func() error) error {
 	errc := make(chan error, len(fetchers))
 	d.cancelWg.Add(len(fetchers))
@@ -696,7 +696,7 @@ func (d *Downloader) Terminate() {
 }
 
 // fetchHead retrieves the head header and prior pivot block (if available) from
-// a remote peer.
+// a remote peer. 从远程节点中检索区块的标头和先前的重要的区块（如果可用）。
 func (d *Downloader) fetchHead(p *peerConnection) (head *types.Header, pivot *types.Header, err error) {
 	p.log.Debug("Retrieving remote chain head")
 	mode := d.getMode()
@@ -1250,7 +1250,7 @@ func (d *Downloader) fetchReceipts(from uint64, beaconMode bool) error {
 
 // processHeaders takes batches of retrieved headers from an input channel and
 // keeps processing and scheduling them into the header chain and downloader's
-// queue until the stream ends or a failure occurs.
+// queue until the stream ends or a failure occurs. 从输入通道获取一批检索到的标头，并将其处理和调度到标头链和下载器队列中，直到流结束或发生故障。
 func (d *Downloader) processHeaders(origin uint64, td, ttd *big.Int, beaconMode bool) error {
 	// Keep a count of uncertain headers to roll back
 	var (

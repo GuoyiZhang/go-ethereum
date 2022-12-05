@@ -222,7 +222,7 @@ type BlockChain struct {
 
 // NewBlockChain returns a fully initialised block chain using information
 // available in the database. It initialises the default Ethereum Validator
-// and Processor.
+// and Processor. NewBlockChain使用数据库中可用的信息返回完全初始化的区块链。它初始化默认的以太坊验证器和处理器。
 func NewBlockChain(db ethdb.Database, cacheConfig *CacheConfig, genesis *Genesis, overrides *ChainOverrides, engine consensus.Engine, vmConfig vm.Config, shouldPreserve func(header *types.Header) bool, txLookupLimit *uint64) (*BlockChain, error) {
 	if cacheConfig == nil {
 		cacheConfig = defaultCacheConfig

@@ -103,9 +103,9 @@ func (cs *chainSyncer) handlePeerEvent(peer *eth.Peer) bool {
 func (cs *chainSyncer) loop() {
 	defer cs.handler.wg.Done()
 
-	//区块同步
+	//区块同步启动
 	cs.handler.blockFetcher.Start()
-	//交易同步
+	//交易同步启动
 	cs.handler.txFetcher.Start()
 	defer cs.handler.blockFetcher.Stop()
 	defer cs.handler.txFetcher.Stop()
@@ -233,7 +233,7 @@ func (cs *chainSyncer) startSync(op *chainSyncOp) {
 	go func() { cs.doneCh <- cs.handler.doSync(op) }()
 }
 
-// doSync synchronizes the local blockchain with a remote peer.
+// doSync synchronizes the local blockchain with a remote peer. 将本地区块链与远程节点同步。
 func (h *handler) doSync(op *chainSyncOp) error {
 	if op.mode == downloader.SnapSync {
 		// Before launch the snap sync, we have to ensure user uses the same
@@ -253,7 +253,7 @@ func (h *handler) doSync(op *chainSyncOp) error {
 			log.Warn("Update txLookup limit", "provided", limit, "updated", *stored)
 		}
 	}
-	// Run the sync cycle, and disable snap sync if we're past the pivot block
+	// Run the sync cycle, and disable snap sync if we're past the pivot block 运行同步循环，如果超过了数据透视块，则禁用快照同步
 	err := h.downloader.LegacySync(op.peer.ID(), op.head, op.td, h.chain.Config().TerminalTotalDifficulty, op.mode)
 	if err != nil {
 		return err
