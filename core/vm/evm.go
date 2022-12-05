@@ -164,13 +164,13 @@ func (evm *EVM) Interpreter() *EVMInterpreter {
 // Call executes the contract associated with the addr with the given input as
 // parameters. It also handles any necessary value transfer required and takes
 // the necessary steps to create accounts and reverses the state in case of an
-// execution error or failed value transfer.
+// execution error or failed value transfer. 使用给定的输入作为参数执行与 addr 关联的合约。 它还处理所需的任何必要的价值转移，并采取必要的步骤来创建帐户并在执行错误或价值转移失败的情况下逆转状态。
 func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
-	// Fail if we're trying to execute above the call depth limit
+	// Fail if we're trying to execute above the call depth limit 如果我们试图在调用深度限制之上执行则失败（深度最大1024）
 	if evm.depth > int(params.CallCreateDepth) {
 		return nil, gas, ErrDepth
 	}
-	// Fail if we're trying to transfer more than the available balance
+	// Fail if we're trying to transfer more than the available balance 如果我们尝试转账超过可用余额，则失败
 	if value.Sign() != 0 && !evm.Context.CanTransfer(evm.StateDB, caller.Address(), value) {
 		return nil, gas, ErrInsufficientBalance
 	}
@@ -179,7 +179,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 
 	if !evm.StateDB.Exist(addr) {
 		if !isPrecompile && evm.chainRules.IsEIP158 && value.Sign() == 0 {
-			// Calling a non existing account, don't do anything, but ping the tracer
+			// Calling a non existing account, don't do anything, but ping the tracer 调用一个不存在的帐户，什么也不做，但 ping 跟踪器
 			if evm.Config.Debug {
 				if evm.depth == 0 {
 					evm.Config.Tracer.CaptureStart(evm, caller.Address(), addr, false, input, gas, value)
@@ -193,9 +193,10 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		}
 		evm.StateDB.CreateAccount(addr)
 	}
+	//资产转移
 	evm.Context.Transfer(evm.StateDB, caller.Address(), addr, value)
 
-	// Capture the tracer start/end events in debug mode
+	// Capture the tracer start/end events in debug mode 在调试模式下捕获跟踪器开始/结束事件
 	if evm.Config.Debug {
 		if evm.depth == 0 {
 			evm.Config.Tracer.CaptureStart(evm, caller.Address(), addr, false, input, gas, value)
@@ -203,7 +204,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 				evm.Config.Tracer.CaptureEnd(ret, startGas-gas, time.Since(startTime), err)
 			}(gas, time.Now())
 		} else {
-			// Handle tracer events for entering and exiting a call frame
+			// Handle tracer events for entering and exiting a call frame 处理进入和退出调用帧的跟踪器事件
 			evm.Config.Tracer.CaptureEnter(CALL, caller.Address(), addr, input, gas, value)
 			defer func(startGas uint64) {
 				evm.Config.Tracer.CaptureExit(ret, startGas-gas, err)
@@ -214,15 +215,15 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 	if isPrecompile {
 		ret, gas, err = RunPrecompiledContract(p, input, gas)
 	} else {
-		// Initialise a new contract and set the code that is to be used by the EVM.
-		// The contract is a scoped environment for this execution context only.
+		// Initialise a new contract and set the code that is to be used by the EVM. 初始化一个新合约并设置 EVM 使用的代码。
+		// The contract is a scoped environment for this execution context only. 合同是仅适用于此执行上下文的范围环境。
 		code := evm.StateDB.GetCode(addr)
 		if len(code) == 0 {
 			ret, err = nil, nil // gas is unchanged
 		} else {
 			addrCopy := addr
-			// If the account has no code, we can abort here
-			// The depth-check is already done, and precompiles handled above
+			// If the account has no code, we can abort here 如果账户没有密码，我们可以在这里中止
+			// The depth-check is already done, and precompiles handled above 深度检查已经完成，预编译在上面处理
 			contract := NewContract(caller, AccountRef(addrCopy), value, gas)
 			contract.SetCallCode(&addrCopy, evm.StateDB.GetCodeHash(addrCopy), code)
 			ret, err = evm.interpreter.Run(contract, input, false)
@@ -231,7 +232,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 	}
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
-	// when we're in homestead this also counts for code storage gas errors.
+	// when we're in homestead this also counts for code storage gas errors. 当 EVM 返回错误或设置上面的创建代码时，我们将恢复到快照并消耗所有剩余的气体。 此外，当我们在 homestead 时，这也算作代码存储 gas 错误。
 	if err != nil {
 		evm.StateDB.RevertToSnapshot(snapshot)
 		if err != ErrExecutionReverted {
@@ -402,10 +403,10 @@ func (c *codeAndHash) Hash() common.Hash {
 	return c.hash
 }
 
-// create creates a new contract using code as deployment code.
-func (evm *EVM) create(caller ContractRef, codeAndHash *codeAndHash, gas uint64, value *big.Int, address common.Address, typ OpCode) ([]byte, common.Address, uint64, error) {
+// create creates a new contract using code as deployment code. 使用代码作为部署代码创建一个新合约。
+func (evm *EVM) create(caller ContractRef, codeAndHash *codeAndHash, gas uint64, value *big.Int, contractAddress common.Address, typ OpCode) ([]byte, common.Address, uint64, error) {
 	// Depth check execution. Fail if we're trying to execute above the
-	// limit.
+	// limit. 深度检查执行。如果我们试图执行超出限制，则失败。（深度最大1024）
 	if evm.depth > int(params.CallCreateDepth) {
 		return nil, common.Address{}, gas, ErrDepth
 	}
@@ -418,33 +419,34 @@ func (evm *EVM) create(caller ContractRef, codeAndHash *codeAndHash, gas uint64,
 	}
 	evm.StateDB.SetNonce(caller.Address(), nonce+1)
 	// We add this to the access list _before_ taking a snapshot. Even if the creation fails,
-	// the access-list change should not be rolled back
+	// the access-list change should not be rolled back 我们在拍摄快照之前将其添加到访问列表中。即使创建失败，也不应回滚访问列表更改
 	if evm.chainRules.IsBerlin {
-		evm.StateDB.AddAddressToAccessList(address)
+		evm.StateDB.AddAddressToAccessList(contractAddress)
 	}
-	// Ensure there's no existing contract already at the designated address
-	contractHash := evm.StateDB.GetCodeHash(address)
-	if evm.StateDB.GetNonce(address) != 0 || (contractHash != (common.Hash{}) && contractHash != emptyCodeHash) {
+	// Ensure there's no existing contract already at the designated contractAddress 确保指定地址没有现有合同
+	contractHash := evm.StateDB.GetCodeHash(contractAddress)
+	if evm.StateDB.GetNonce(contractAddress) != 0 || (contractHash != (common.Hash{}) && contractHash != emptyCodeHash) {
 		return nil, common.Address{}, 0, ErrContractAddressCollision
 	}
-	// Create a new account on the state
+	// Create a new account on the state 在状态上创建一个新帐户，并设置nonce 1
 	snapshot := evm.StateDB.Snapshot()
-	evm.StateDB.CreateAccount(address)
+	evm.StateDB.CreateAccount(contractAddress)
 	if evm.chainRules.IsEIP158 {
-		evm.StateDB.SetNonce(address, 1)
+		evm.StateDB.SetNonce(contractAddress, 1)
 	}
-	evm.Context.Transfer(evm.StateDB, caller.Address(), address, value)
+	//资产转移
+	evm.Context.Transfer(evm.StateDB, caller.Address(), contractAddress, value)
 
-	// Initialise a new contract and set the code that is to be used by the EVM.
-	// The contract is a scoped environment for this execution context only.
-	contract := NewContract(caller, AccountRef(address), value, gas)
-	contract.SetCodeOptionalHash(&address, codeAndHash)
+	// Initialise a new contract and set the code that is to be used by the EVM. 初始化一个新合约并设置 EVM 使用的代码。
+	// The contract is a scoped environment for this execution context only. 合同是仅适用于此执行上下文的范围环境。
+	contract := NewContract(caller, AccountRef(contractAddress), value, gas)
+	contract.SetCodeOptionalHash(&contractAddress, codeAndHash)
 
 	if evm.Config.Debug {
 		if evm.depth == 0 {
-			evm.Config.Tracer.CaptureStart(evm, caller.Address(), address, true, codeAndHash.code, gas, value)
+			evm.Config.Tracer.CaptureStart(evm, caller.Address(), contractAddress, true, codeAndHash.code, gas, value)
 		} else {
-			evm.Config.Tracer.CaptureEnter(typ, caller.Address(), address, codeAndHash.code, gas, value)
+			evm.Config.Tracer.CaptureEnter(typ, caller.Address(), contractAddress, codeAndHash.code, gas, value)
 		}
 	}
 
@@ -452,12 +454,12 @@ func (evm *EVM) create(caller ContractRef, codeAndHash *codeAndHash, gas uint64,
 
 	ret, err := evm.interpreter.Run(contract, nil, false)
 
-	// Check whether the max code size has been exceeded, assign err if the case.
+	// Check whether the max code size has been exceeded, assign err if the case. 检查是否超过最大代码大小，如果超过则分配 err。（最大24576字节）
 	if err == nil && evm.chainRules.IsEIP158 && len(ret) > params.MaxCodeSize {
 		err = ErrMaxCodeSizeExceeded
 	}
 
-	// Reject code starting with 0xEF if EIP-3541 is enabled.
+	// Reject code starting with 0xEF if EIP-3541 is enabled. 如果启用了 EIP-3541，则拒绝以 0xEF 开头的代码。
 	if err == nil && len(ret) >= 1 && ret[0] == 0xEF && evm.chainRules.IsLondon {
 		err = ErrInvalidCode
 	}
@@ -465,11 +467,11 @@ func (evm *EVM) create(caller ContractRef, codeAndHash *codeAndHash, gas uint64,
 	// if the contract creation ran successfully and no errors were returned
 	// calculate the gas required to store the code. If the code could not
 	// be stored due to not enough gas set an error and let it be handled
-	// by the error checking condition below.
+	// by the error checking condition below. 如果合约创建成功运行并且没有返回错误，请计算存储代码所需的气体。如果由于没有足够的气体而无法存储代码，则设置错误并通过下面的错误检查条件进行处理。
 	if err == nil {
 		createDataGas := uint64(len(ret)) * params.CreateDataGas
 		if contract.UseGas(createDataGas) {
-			evm.StateDB.SetCode(address, ret)
+			evm.StateDB.SetCode(contractAddress, ret)
 		} else {
 			err = ErrCodeStoreOutOfGas
 		}
@@ -477,7 +479,7 @@ func (evm *EVM) create(caller ContractRef, codeAndHash *codeAndHash, gas uint64,
 
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
-	// when we're in homestead this also counts for code storage gas errors.
+	// when we're in homestead this also counts for code storage gas errors. 当 EVM 返回错误或设置上面的创建代码时，我们将恢复到快照并消耗所有剩余的气体。 此外，当我们在 homestead 时，这也算作代码存储 gas 错误。
 	if err != nil && (evm.chainRules.IsHomestead || err != ErrCodeStoreOutOfGas) {
 		evm.StateDB.RevertToSnapshot(snapshot)
 		if err != ErrExecutionReverted {
@@ -492,10 +494,10 @@ func (evm *EVM) create(caller ContractRef, codeAndHash *codeAndHash, gas uint64,
 			evm.Config.Tracer.CaptureExit(ret, gas-contract.Gas, err)
 		}
 	}
-	return ret, address, contract.Gas, err
+	return ret, contractAddress, contract.Gas, err
 }
 
-// Create creates a new contract using code as deployment code.
+// Create creates a new contract using code as deployment code. 使用代码作为部署代码创建一个新合约。
 func (evm *EVM) Create(caller ContractRef, code []byte, gas uint64, value *big.Int) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
 	contractAddr = crypto.CreateAddress(caller.Address(), evm.StateDB.GetNonce(caller.Address()))
 	return evm.create(caller, &codeAndHash{code: code}, gas, value, contractAddr, CREATE)

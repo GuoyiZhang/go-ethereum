@@ -67,7 +67,7 @@ type StateTransition struct {
 	evm        *vm.EVM
 }
 
-// Message represents a message sent to a contract.
+// Message represents a message sent to a contract. Message代表发送到合约的消息。
 type Message interface {
 	From() common.Address
 	To() *common.Address
@@ -176,12 +176,12 @@ func NewStateTransition(evm *vm.EVM, msg Message, gp *GasPool) *StateTransition 
 }
 
 // ApplyMessage computes the new state by applying the given message
-// against the old state within the environment.
+// against the old state within the environment. ApplyMessage 通过对环境中的旧状态应用给定消息来计算新状态。
 //
 // ApplyMessage returns the bytes returned by any EVM execution (if it took place),
 // the gas used (which includes gas refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
-// state and would never be accepted within a block.
+// state and would never be accepted within a block. ApplyMessage返回任何EVM执行（如果发生）返回的字节、使用的气体（包括气体退款）以及失败时的错误。错误总是指示核心错误，这意味着消息对于该特定状态总是失败，并且永远不会在块中被接受。
 func ApplyMessage(evm *vm.EVM, msg Message, gp *GasPool) (*ExecutionResult, error) {
 	return NewStateTransition(evm, msg, gp).TransitionDb()
 }
@@ -265,15 +265,15 @@ func (st *StateTransition) preCheck() error {
 }
 
 // TransitionDb will transition the state by applying the current message and
-// returning the evm execution result with following fields.
+// returning the evm execution result with following fields. TransitionDb将通过应用当前消息并返回带有以下字段的evm执行结果来转换状态。
 //
-//   - used gas: total gas used (including gas being refunded)
-//   - returndata: the returned data from evm
+//   - used gas: total gas used (including gas being refunded) -已用气体：已用气体总量（包括已退还的气体）
+//   - returndata: the returned data from evm -returndata：从evm返回的数据
 //   - concrete execution error: various EVM errors which abort the execution, e.g.
-//     ErrOutOfGas, ErrExecutionReverted
+//     ErrOutOfGas, ErrExecutionReverted -具体执行错误：中止执行的各种EVM错误，例如ErrOutOfGas、ErrExecutionReverted
 //
 // However if any consensus issue encountered, return the error directly with
-// nil evm execution result.
+// nil evm execution result. 但是，如果遇到任何共识问题，请直接返回错误并返回nil evm执行结果。
 func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 	// First check this message satisfies all consensus rules before
 	// applying the message. The rules include these clauses
@@ -284,6 +284,14 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 	// 4. the purchased gas is enough to cover intrinsic usage
 	// 5. there is no overflow when calculating intrinsic gas
 	// 6. caller has enough balance to cover asset transfer for **topmost** call
+
+	// 在应用消息之前，首先检查此消息是否满足所有共识规则。规则包括以下条款
+	//1.消息调用者的随机数正确
+	//2.来电者有足够的余额支付交易费用（gaslimit*gasprice）
+	//3.区块内可用的气体量
+	//4.购买的天然气足以满足固有用途
+	//5.计算固有气体时没有溢出
+	//6.呼叫方有足够的余额来支付**最高**呼叫的资产转移
 
 	// Check clauses 1-3, buy gas if everything is correct
 	if err := st.preCheck(); err != nil {
@@ -304,7 +312,7 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 		contractCreation = msg.To() == nil
 	)
 
-	// Check clauses 4-5, subtract intrinsic gas if everything is correct
+	// Check clauses 4-5, subtract intrinsic gas if everything is correct 检查第4-5条，如果一切正确，减去固有气体
 	gas, err := IntrinsicGas(st.data, st.msg.AccessList(), contractCreation, rules.IsHomestead, rules.IsIstanbul)
 	if err != nil {
 		return nil, err
@@ -327,19 +335,20 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 		ret   []byte
 		vmerr error // vm errors do not effect consensus and are therefore not assigned to err
 	)
+	// 合约创建交易处理
 	if contractCreation {
 		ret, _, st.gas, vmerr = st.evm.Create(sender, st.data, st.gas, st.value)
 	} else {
-		// Increment the nonce for the next transaction
+		// Increment the nonce for the next transaction 增加下一个事务的随机数
 		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
 		ret, st.gas, vmerr = st.evm.Call(sender, st.to(), st.data, st.gas, st.value)
 	}
 
 	if !rules.IsLondon {
-		// Before EIP-3529: refunds were capped to gasUsed / 2
+		// Before EIP-3529: refunds were capped to gasUsed / 2 在 EIP-3529 之前：退款上限为 gasUsed / 2
 		st.refundGas(params.RefundQuotient)
 	} else {
-		// After EIP-3529: refunds are capped to gasUsed / 5
+		// After EIP-3529: refunds are capped to gasUsed / 5 在 EIP-3529 之后：退款上限为 gasUsed / 5
 		st.refundGas(params.RefundQuotientEIP3529)
 	}
 	effectiveTip := st.gasPrice
@@ -350,7 +359,7 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 	if st.evm.Config.NoBaseFee && st.gasFeeCap.Sign() == 0 && st.gasTipCap.Sign() == 0 {
 		// Skip fee payment when NoBaseFee is set and the fee fields
 		// are 0. This avoids a negative effectiveTip being applied to
-		// the coinbase when simulating calls.
+		// the coinbase when simulating calls. 设置 NoBaseFee 且费用字段为 0 时跳过费用支付。这避免了在模拟调用时将负有效提示应用于 coinbase。
 	} else {
 		fee := new(big.Int).SetUint64(st.gasUsed())
 		fee.Mul(fee, effectiveTip)

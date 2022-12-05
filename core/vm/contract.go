@@ -62,12 +62,12 @@ type Contract struct {
 	value *big.Int
 }
 
-// NewContract returns a new contract environment for the execution of EVM.
+// NewContract returns a new contract environment for the execution of EVM. 为EVM执行返回一个新的合约环境。
 func NewContract(caller ContractRef, object ContractRef, value *big.Int, gas uint64) *Contract {
 	c := &Contract{CallerAddress: caller.Address(), caller: caller, self: object}
 
 	if parent, ok := caller.(*Contract); ok {
-		// Reuse JUMPDEST analysis from parent context if available.
+		// Reuse JUMPDEST analysis from parent context if available. 如果可用，重复使用来自父上下文的 JUMPDEST 分析。
 		c.jumpdests = parent.jumpdests
 	} else {
 		c.jumpdests = make(map[common.Hash]bitvec)
@@ -141,7 +141,7 @@ func (c *Contract) AsDelegate() *Contract {
 	return c
 }
 
-// GetOp returns the n'th element in the contract's byte array
+// GetOp returns the n'th element in the contract's byte array 返回合约字节数组中的第 n 个元素
 func (c *Contract) GetOp(n uint64) OpCode {
 	if n < uint64(len(c.Code)) {
 		return OpCode(c.Code[n])

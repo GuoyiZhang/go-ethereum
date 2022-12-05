@@ -51,11 +51,11 @@ func NewStateProcessor(config *params.ChainConfig, bc *BlockChain, engine consen
 
 // Process processes the state changes according to the Ethereum rules by running
 // the transaction messages using the statedb and applying any rewards to both
-// the processor (coinbase) and any included uncles.
+// the processor (coinbase) and any included uncles. Process根据以太坊规则处理状态变化，方法是使用statedb运行交易消息，并将任何奖励应用于处理器（coinbase）和任何包含的叔叔。
 //
 // Process returns the receipts and logs accumulated during the process and
 // returns the amount of gas that was used in the process. If any of the
-// transactions failed to execute due to insufficient gas it will return an error.
+// transactions failed to execute due to insufficient gas it will return an error. 返回过程中累积的收据和日志，并返回过程中使用的气体量。如果由于气体不足导致任何事务无法执行，则会返回错误。
 func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg vm.Config) (types.Receipts, []*types.Log, uint64, error) {
 	var (
 		receipts    types.Receipts
@@ -93,11 +93,11 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 }
 
 func applyTransaction(msg types.Message, config *params.ChainConfig, author *common.Address, gp *GasPool, statedb *state.StateDB, blockNumber *big.Int, blockHash common.Hash, tx *types.Transaction, usedGas *uint64, evm *vm.EVM) (*types.Receipt, error) {
-	// Create a new context to be used in the EVM environment.
+	// Create a new context to be used in the EVM environment. 创建要在EVM环境中使用的新上下文。
 	txContext := NewEVMTxContext(msg)
 	evm.Reset(txContext, statedb)
 
-	// Apply the transaction to the current state (included in the env).
+	// Apply the transaction to the current state (included in the env). 将事务应用于当前状态（包含在env中）。
 	result, err := ApplyMessage(evm, msg, gp)
 	if err != nil {
 		return nil, err

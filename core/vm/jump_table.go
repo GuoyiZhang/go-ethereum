@@ -57,7 +57,7 @@ var (
 	mergeInstructionSet            = newMergeInstructionSet()
 )
 
-// JumpTable contains the EVM opcodes supported at a given fork.
+// JumpTable contains the EVM opcodes supported at a given fork. 包含给定分叉支持的 EVM 操作码。
 type JumpTable [256]*operation
 
 func validate(jt JumpTable) JumpTable {
